@@ -42,6 +42,7 @@ contract Voting is Ownable {
     }
 
     Proposal[] public proposals;
+    address[] public voters;
 
     modifier check(){
         require(voterInfo[msg.sender].isRegistered==true, "you are not autorised");
@@ -52,13 +53,14 @@ contract Voting is Ownable {
         if (voterInfo[_address].isRegistered) {
             return "ce compte existe deja";
         } else {
-            voterInfo[_address] = {
-                isRegistered = true,
-                nickname = _nickName,
-                myVoteId = 0;
-                myProposalId = 0;
-                votedProposalId = 0;
-            }
+            Voter storage newVoter = voterInfo[_address];
+            newVoter.isRegistered = true;
+            newVoter.nickname = _nickName;
+            newVoter.myVoteId = 0;
+            newVoter.myProposalId = 0;
+            newVoter.votedProposalId = 0;
+            voters.push(_address);
+            return "compte ajoute";
         }
     }
 
@@ -79,7 +81,7 @@ contract Voting is Ownable {
         WorkflowStatus previousStatus = workflowStatus;
         workflowStatus = WorkflowStatus.ProposalsRegistrationEnded;
         emit WorkflowStatusChange(previousStatus, workflowStatus);
-        }
+    }
 
     function startVoting() public onlyOwner {
         require(workflowStatus == WorkflowStatus.ProposalsRegistrationEnded, "La session de vote a deja demarre ou la session des proprositions n est pas finis");
@@ -102,18 +104,18 @@ contract Voting is Ownable {
             voteCount: 0,
             owner : _address
         }));
-        uint proposalsId = proposals.length -1;
+        uint proposalId = proposals.length -1;
         emit ProposalRegistered(proposalId);
     }
 
     function vote(uint _propoalID) public check {
         require(workflowStatus == WorkflowStatus.VotingSessionStarted, "La session d enregistrement des propositions n a pas demarre");
         require(_propoalID < proposals.length, "L'ID de proposition n est pas valide");
-        if (voterInfo[msg.sender].voteId == currentVoteId) {
+        if (voterInfo[msg.sender].myVoteId == currentVoteId) {
             uint oldProposalID = voterInfo[msg.sender].votedProposalId;
             proposals[oldProposalID].voteCount--;
         } else {
-            voterInfo[msg.sender].voteId = currentVoteId;
+            voterInfo[msg.sender].myVoteId = currentVoteId;
         }
         voterInfo[msg.sender].votedProposalId = _propoalID;
         proposals[_propoalID].voteCount++;
@@ -121,20 +123,20 @@ contract Voting is Ownable {
     }
 
     function getVote(uint _proposalId) public check view returns (uint) {
-        require(workflowStatus == WorkflowStatus.VotingSessionEnded, "La session de vote n est psa fini");
         require(_proposalId < proposals.length, "L ID de proposition n'est pas valide");
         return proposals[_proposalId].voteCount;
     }
 
-    function getWinner() public view returns (uint) {
+    function getWinner() public view returns (Proposal memory) {
         require(workflowStatus == WorkflowStatus.VotesTallied, "Le vote n a pas encore ete comptabilise");
         uint winningProposalId ;
         uint maxCount = 0;
         for (uint i = 0; i < proposals.length; i++) {
             if (proposals[i].voteCount > maxCount) {
                 maxCount = proposals[i].voteCount;
-                winningProposalId  = i;
+                winningProposalId = i;
             }
         }
-        return proposals[winningProposalId].description;
+        return proposals[winningProposalId];
+    }
 }
