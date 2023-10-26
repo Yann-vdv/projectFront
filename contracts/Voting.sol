@@ -13,8 +13,10 @@ contract Voting is Ownable {
     WorkflowStatus public workflowStatus;
     uint public currentVoteId = 1;
 
-    event VoterRegistered();
+    event VoterRegistered(address voterAddress);
     event WorkflowStatusChange(WorkflowStatus previousStatus, WorkflowStatus newStatus);
+    event ProposalRegistered(uint proposalId);
+    event Voted (address voter, uint proposalId);
 
     struct Voter {
         bool isRegistered;
@@ -51,27 +53,35 @@ contract Voting is Ownable {
 
     function authorize(address _address) public onlyOwner  {
         voterInfo[_address].isRegistered = true;
-        emit VoterRegistered();
+        emit VoterRegistered(_address);
     }
 
     function startRegisteringProposals() public onlyOwner {
         require(workflowStatus == WorkflowStatus.RegisteringVoters, "La session d'enregistrement des propositions est deja demarre");
+        WorkflowStatus previousStatus = workflowStatus;
         workflowStatus = WorkflowStatus.ProposalsRegistrationStarted;
+        emit WorkflowStatusChange(previousStatus, workflowStatus);
     }
 
     function stopRegisteringProposals() public onlyOwner {
         require(workflowStatus == WorkflowStatus.ProposalsRegistrationStarted, "La session d enregistrement des propositions n a pas demarre");
+        WorkflowStatus previousStatus = workflowStatus;
         workflowStatus = WorkflowStatus.ProposalsRegistrationEnded;
+        emit WorkflowStatusChange(previousStatus, workflowStatus);
         }
 
     function startVoting() public onlyOwner {
         require(workflowStatus == WorkflowStatus.ProposalsRegistrationEnded, "La session de vote a deja demarre ou la session des proprositions n est pas finis");
+        WorkflowStatus previousStatus = workflowStatus;
         workflowStatus = WorkflowStatus.VotingSessionStarted;
+        emit WorkflowStatusChange(previousStatus, workflowStatus);
     }
 
     function stopVoting() public onlyOwner {
         require(workflowStatus == WorkflowStatus.VotingSessionStarted, "La session de vote n a pas demarre");
+        WorkflowStatus previousStatus = workflowStatus;
         workflowStatus = WorkflowStatus.VotingSessionEnded;
+        emit WorkflowStatusChange(previousStatus, workflowStatus);
     }
 
     function proposing(string memory _description, address _address) public check {
@@ -81,6 +91,8 @@ contract Voting is Ownable {
             voteCount: 0,
             owner : _address
         }));
+        uint proposalsId = proposals.length -1;
+        emit ProposalRegistered(proposalId);
     }
 
     function vote(uint _propoalID) public check {
@@ -94,5 +106,42 @@ contract Voting is Ownable {
         }
         voterInfo[msg.sender].votedProposalId = _propoalID;
         proposals[_propoalID].voteCount++;
+        emit Voted (msg.sender, _propoalID);
     }
+
+    // function vote(uint proposalId) public check {
+    //     require(workflowStatus == WorkflowStatus.VotingSessionStarted, "La session de vote n a pas demarre");
+    //     require(proposalId < proposals.length, "L'ID de proposition n est pas valide");
+    //     require(voterInfo[msg.sender].hasVoted == false, "Vous avez deja vote");
+    //     proposals[proposalId].voteCount++;
+    //     voterInfo[msg.sender].hasVoted = true;
+    //     voterInfo[msg.sender].votedProposalId = proposalId;
+    // }
+
+    // function countVotes() public onlyOwner {
+    //     require(workflowStatus == WorkflowStatus.VotingSessionEnded, "La session de vote n a pas encore pris fin");
+    //     uint[] memory voteCounts = new uint[](proposals.length);
+    //     for (uint i=0; i<proposals.length; i++) {
+    //         voteCounts[i] = proposals[i].voteCount;
+    //     }
+    //     workflowStatus = WorkflowStatus.VotesTallied;
+    // }
+
+    function getVote(uint _proposalId) public check view returns (uint) {
+        require(workflowStatus == WorkflowStatus.VotingSessionEnded, "La session de vote n est psa fini");
+        require(_proposalId < proposals.length, "L ID de proposition n'est pas valide");
+        return proposals[_proposalId].voteCount;
+    }
+
+    function getWinner() public view returns (uint) {
+        require(workflowStatus == WorkflowStatus.VotesTallied, "Le vote n a pas encore ete comptabilise");
+        uint winningProposalId ;
+        uint maxCount = 0;
+        for (uint i = 0; i < proposals.length; i++) {
+            if (proposals[i].voteCount > maxCount) {
+                maxCount = proposals[i].voteCount;
+                winningProposalId  = i;
+            }
+        }
+        return proposals[winningProposalId].description;
 }

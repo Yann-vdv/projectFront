@@ -28,7 +28,7 @@ class App extends Component {
       /* Création de l'objet de contrat avec l'abi et l'addresse du contrat  */
       const instance = new web3.eth.Contract(
         Voting.abi,
-        "0x42820574f1E0e8c447a4Fc4e56122b1A456e2b61"
+        "0x98eF6835f16439AB70378F2B992050489D078503"
       )
 
       // Set web3, accounts, and contract to the state, and then proceed with an
@@ -46,12 +46,12 @@ class App extends Component {
       console.log("instance.methods",instance.methods)
 
 			// Check if the user is the owner
-      // const owner = await instance.methods.owner().call()
-      // if (account === owner) {
-      //   this.setState({
-      //     isOwner: true,
-      //   })
-      // }
+      const owner = await instance.methods.owner().call()
+      if (account === owner) {
+        this.setState({
+          isOwner: true,
+        })
+      }
 
       const test = await instance.methods.test().call();
 
