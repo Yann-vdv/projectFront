@@ -21,7 +21,8 @@ contract Voting is Ownable {
     struct Voter {
         bool isRegistered;
         string nickname;
-        uint voteId;
+        uint myVoteId;
+        uint myProposalId;
         uint votedProposalId;
     }
 
@@ -47,8 +48,18 @@ contract Voting is Ownable {
         _;
     }
 
-    function test() public pure returns (string memory) {
-        return "coucou je test";
+    function register(address _address, string memory _nickName) public returns (string memory) {
+        if (voterInfo[_address].isRegistered) {
+            return "ce compte existe deja";
+        } else {
+            voterInfo[_address] = {
+                isRegistered = true,
+                nickname = _nickName,
+                myVoteId = 0;
+                myProposalId = 0;
+                votedProposalId = 0;
+            }
+        }
     }
 
     function authorize(address _address) public onlyOwner  {
@@ -108,24 +119,6 @@ contract Voting is Ownable {
         proposals[_propoalID].voteCount++;
         emit Voted (msg.sender, _propoalID);
     }
-
-    // function vote(uint proposalId) public check {
-    //     require(workflowStatus == WorkflowStatus.VotingSessionStarted, "La session de vote n a pas demarre");
-    //     require(proposalId < proposals.length, "L'ID de proposition n est pas valide");
-    //     require(voterInfo[msg.sender].hasVoted == false, "Vous avez deja vote");
-    //     proposals[proposalId].voteCount++;
-    //     voterInfo[msg.sender].hasVoted = true;
-    //     voterInfo[msg.sender].votedProposalId = proposalId;
-    // }
-
-    // function countVotes() public onlyOwner {
-    //     require(workflowStatus == WorkflowStatus.VotingSessionEnded, "La session de vote n a pas encore pris fin");
-    //     uint[] memory voteCounts = new uint[](proposals.length);
-    //     for (uint i=0; i<proposals.length; i++) {
-    //         voteCounts[i] = proposals[i].voteCount;
-    //     }
-    //     workflowStatus = WorkflowStatus.VotesTallied;
-    // }
 
     function getVote(uint _proposalId) public check view returns (uint) {
         require(workflowStatus == WorkflowStatus.VotingSessionEnded, "La session de vote n est psa fini");
