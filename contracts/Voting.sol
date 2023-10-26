@@ -127,6 +127,18 @@ contract Voting is Ownable {
         return proposals[_proposalId].voteCount;
     }
 
+    function getProposals() public view check returns (Proposal[] memory) {
+        return proposals;
+    }
+
+    function getUsers() public view check returns (Voter[] memory) {
+        Voter[] memory votersData;
+        for (uint i = 0; i < voters.length; i++) {
+            votersData[i] = voterInfo[voters[i]];
+        }
+        return votersData;
+    }
+
     function getWinner() public view returns (Proposal memory) {
         require(workflowStatus == WorkflowStatus.VotesTallied, "Le vote n a pas encore ete comptabilise");
         uint winningProposalId ;
