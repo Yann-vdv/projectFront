@@ -6,7 +6,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Voting is Ownable {
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) {
+        register(msg.sender,"Admin");
+    }
 
     mapping(address => Voter) public voterInfo;
 
@@ -44,14 +46,20 @@ contract Voting is Ownable {
     Proposal[] public proposals;
     address[] public voters;
 
+    function compareStrings(string memory a, string memory b) internal pure returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    }
+
     modifier check(){
-        require(voterInfo[msg.sender].isRegistered==true, "you are not autorised");
+        require(voterInfo[msg.sender].isRegistered, "you are not autorised");
         _;
     }
 
     function register(address _address, string memory _nickName) public returns (string memory) {
         if (voterInfo[_address].isRegistered) {
-            return "ce compte existe deja";
+            return "Vous avez deja un compte";
+        } else if (compareStrings(_nickName, "Admin") && _address != owner()) {
+            return "Vous n'etes pas l'Admin";
         } else {
             Voter storage newVoter = voterInfo[_address];
             newVoter.isRegistered = true;
