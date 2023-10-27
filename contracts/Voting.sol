@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Voting is Ownable {
 
     constructor() Ownable(msg.sender) {
-        register(msg.sender,"Admin");
+        register("Admin");
     }
 
     mapping(address => Voter) public voterInfo;
@@ -55,19 +55,19 @@ contract Voting is Ownable {
         _;
     }
 
-    function register(address _address, string memory _nickName) public returns (string memory) {
-        if (voterInfo[_address].isRegistered) {
+    function register(string memory _nickName) public returns (string memory) {
+        if (voterInfo[msg.sender].isRegistered) {
             return "Vous avez deja un compte";
-        } else if (compareStrings(_nickName, "Admin") && _address != owner()) {
+        } else if (compareStrings(_nickName, "Admin") && msg.sender != owner()) {
             return "Vous n'etes pas l'Admin";
         } else {
-            Voter storage newVoter = voterInfo[_address];
+            Voter storage newVoter = voterInfo[msg.sender];
             newVoter.isRegistered = true;
             newVoter.nickname = _nickName;
             newVoter.myVoteId = 0;
             newVoter.myProposalId = 0;
             newVoter.votedProposalId = 0;
-            voters.push(_address);
+            voters.push(msg.sender);
             return "compte ajoute";
         }
     }
@@ -105,12 +105,12 @@ contract Voting is Ownable {
         emit WorkflowStatusChange(previousStatus, workflowStatus);
     }
 
-    function proposing(string memory _description, address _address) public check {
+    function proposing(string memory _description) public check {
         require(workflowStatus == WorkflowStatus.ProposalsRegistrationStarted, "La session d enregistrement des propositions n a pas demarre");
         proposals.push(Proposal({
             description: _description,
             voteCount: 0,
-            owner : _address
+            owner : msg.sender
         }));
         uint proposalId = proposals.length -1;
         emit ProposalRegistered(proposalId);
@@ -145,6 +145,10 @@ contract Voting is Ownable {
             votersData[i] = voterInfo[voters[i]];
         }
         return votersData;
+    }
+    
+    function getEvent() public view onlyOwner returns (WorkflowStatus) {
+        return workflowStatus;
     }
 
     function getWinner() public view returns (Proposal memory) {

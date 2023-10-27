@@ -1,12 +1,18 @@
-import React, { Component, useState } from "react"
-import Voting from "./artifacts/contracts/Voting.sol/Voting.json"
-import getWeb3 from "./getWeb3"
-import "./App.css"
-import UserSidebar from "../component/UserSidebar"
+import React, { Component, useState } from "react";
+import Voting from "./artifacts/contracts/Voting.sol/Voting.json";
+import getWeb3 from "./getWeb3";
+import "./App.css";
+import UserSidebar from "../component/UserSidebar";
+import Proposals from "../component/Proposals";
+import AdminPanel from "../component/AdminPanel";
+import RegisterPanel from "../component/RegisterPanel";
 
 const App = () => {
   const [instance,setInstance] = useState();
   const [userAddress, setUserAddress] = useState("");
+  const [fullUserAddress, setFullUserAddress] = useState("");
+  const [isOwner,setIsOwner] = useState(true);
+  const [isRegistered, setIsRegistered] = useState(true);
 
   React.useEffect(() => {
     componentDidMount();
@@ -27,23 +33,25 @@ const App = () => {
       /* Création de l'objet de contrat avec l'abi et l'addresse du contrat  */
       const newInstance = new web3.eth.Contract(
         Voting.abi,
-        "0x5ed2F6552ab8605492ea18E12d3572e8DA61bE1B"
+        "0x286684dA607f0CF200eCa9F934f97226F7338D9a"
       )
       setInstance(newInstance);
 
       const account = accounts[0];
 
       setUserAddress(account.slice(0, 6) + "..." + account.slice(38, 42));
+      setFullUserAddress(account);
 
 			// Check if the user is the owner
-      // const owner = await instance.methods.owner().call()
+      // const owner = await newInstance.methods.owner().call()
       // if (account === owner) {
-      //   this.setState({
-      //     isOwner: true,
-      //   })
-      // }
+      //   console.log("isOwner")
+      //   // this.setState({
+      //   //   isOwner: true,
+      //   // })
+      // } else console.log('is not owner')
 
-      // instance.methods.getUsers().then((res) => {
+      // newInstance.methods.getUsers().call().then((res) => {
       //   console.log('test',res)
       // }).catch((err) => console.error("getUsers error",err))
 
@@ -83,13 +91,8 @@ const App = () => {
             </div>
             <ul className="hidden list-none md:flex flex-row gap-4 items-baseline ml-10">
               <li>
-                <button
-                  id="web3-status-connected"
-                  className="web3-button"
-                >
-                  <p className="Web3StatusText">
-                    {userAddress}
-                  </p>
+                <button id="web3-status-connected" className="web3-button">
+                  <p className="Web3StatusText">{userAddress}</p>
                   <div
                     size="16"
                     className="Web3Status__IconWrapper-sc-wwio5h-0 hqHdeW"
@@ -133,11 +136,17 @@ const App = () => {
           </div>
         </nav>
       </header>
-      {instance && <div style={{display:'flex', justifyContent:"space-between"}}>
-        <div>proposals</div>
-        <UserSidebar instance={instance}/>
-      </div>}
+      {instance && 
+        !isRegistered ?
+          <RegisterPanel instance={instance} setIsRegistered={setIsRegistered} userAddress={fullUserAddress}/>
+        :
+          <div style={{ display: "flex"}}>
+            {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress}/>}
+            <Proposals instance={instance} userAddress={fullUserAddress}/>
+            <UserSidebar instance={instance} userAddress={fullUserAddress}/>
+          </div>
+      }
     </div>
-  )
+  );
 }
 export default App
