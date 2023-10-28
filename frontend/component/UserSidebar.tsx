@@ -9,42 +9,20 @@ interface voterI {
 }
 
 const UserSidebar = (instance:any) => {
-    const [users,setUsers] = React.useState<voterI[]>([
-        {
-            isRegistered:true,
-            nickname: "Admin",
-            myVoteId: 0,
-            myProposalId: 0,
-            votedProposalId: 0
-        },
-        {
-            isRegistered:true,
-            nickname: "testUser2",
-            myVoteId: 0,
-            myProposalId: 0,
-            votedProposalId: 0
-        },
-        {
-            isRegistered:true,
-            nickname: "testUser3",
-            myVoteId: 0,
-            myProposalId: 0,
-            votedProposalId: 0
-        },
-    ])
+    const [users,setUsers] = React.useState<voterI[]>();
 
-    // React.useEffect(() => {
-    //     instance.methods.getUsers().call()
-    //         .then((res) => setUsers(res))
-    //         .catch((err) => console.error("getUsers error",err))
-    // },[])
+    React.useEffect(() => {
+        instance.methods && instance.methods.getUsers().call()
+            .then((res) => setUsers(res))
+            .catch((err) => console.error("getUsers error",err))
+    },[instance.methods])
 
     return (
         <div className="border border-b h-full" style={{width:150}}>
             <div className='border-b'>
                 <h3>Utilisateurs</h3>
             </div>
-            {users.map((user,key) => 
+            {users?.map((user,key) => 
                 <div key={key} className='border-b'>
                     <p style={{color:user.nickname == "Admin" ? "red" : "black"}}>{user.nickname}</p>
                 </div>

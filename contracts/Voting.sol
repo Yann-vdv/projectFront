@@ -55,20 +55,29 @@ contract Voting is Ownable {
         _;
     }
 
-    function register(string memory _nickName) public returns (string memory) {
-        if (voterInfo[msg.sender].isRegistered) {
-            return "Vous avez deja un compte";
-        } else if (compareStrings(_nickName, "Admin") && msg.sender != owner()) {
-            return "Vous n'etes pas l'Admin";
-        } else {
-            Voter storage newVoter = voterInfo[msg.sender];
+    function register(string memory _nickName) public returns (string memory,Voter memory) {
+        // if (voterInfo[msg.sender].isRegistered) {
+        //     return "Vous avez deja un compte";
+        // } else if (compareStrings(_nickName, "Admin") && msg.sender != owner()) {
+        //     return "Vous n'etes pas l'Admin";
+        // } else {
+            Voter memory newVoter = voterInfo[msg.sender];
             newVoter.isRegistered = true;
             newVoter.nickname = _nickName;
             newVoter.myVoteId = 0;
             newVoter.myProposalId = 0;
             newVoter.votedProposalId = 0;
+            voterInfo[msg.sender] = newVoter;
             voters.push(msg.sender);
-            return "compte ajoute";
+            return ("compte ajoute",newVoter);
+        // }
+    }
+
+    function login() public view returns (bool, string memory) {
+        if (voterInfo[msg.sender].isRegistered) {
+            return (true,voterInfo[msg.sender].nickname);
+        } else {
+            return (false,"Vous n'avez pas de compte");
         }
     }
 
@@ -145,6 +154,17 @@ contract Voting is Ownable {
             votersData[i] = voterInfo[voters[i]];
         }
         return votersData;
+    }
+
+    function getUsersTest() public view returns (address[] memory) {
+        return voters;
+    }
+
+    function getUsersDataTest(address _address) public view returns (Voter memory) {
+        return voterInfo[_address];
+    }
+    function getMyDataTest() public view returns (Voter memory, address) {
+        return (voterInfo[msg.sender],msg.sender);
     }
     
     function getEvent() public view onlyOwner returns (WorkflowStatus) {

@@ -11,8 +11,9 @@ const App = () => {
   const [instance,setInstance] = useState();
   const [userAddress, setUserAddress] = useState("");
   const [fullUserAddress, setFullUserAddress] = useState("");
-  const [isOwner,setIsOwner] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(true);
+  const [isOwner,setIsOwner] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [address, setAdress] = useState("");
 
   React.useEffect(() => {
     componentDidMount();
@@ -33,7 +34,7 @@ const App = () => {
       /* Création de l'objet de contrat avec l'abi et l'addresse du contrat  */
       const newInstance = new web3.eth.Contract(
         Voting.abi,
-        "0x286684dA607f0CF200eCa9F934f97226F7338D9a"
+        "0xa9975904B687C43ef22cB3216C6e70ab71674F69"
       )
       setInstance(newInstance);
 
@@ -51,9 +52,9 @@ const App = () => {
       //   // })
       // } else console.log('is not owner')
 
-      // newInstance.methods.getUsers().call().then((res) => {
-      //   console.log('test',res)
-      // }).catch((err) => console.error("getUsers error",err))
+      newInstance.methods.getUsersTest().call()
+          .then((res) => console.log('getUsersTest',res))
+          .catch((err) => console.error("getUsersTest error",err))
 
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -63,6 +64,15 @@ const App = () => {
       console.error(error)
     }
   }
+
+  const getData = () => {
+    instance?.methods.getUsersDataTest(address).call().then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
+  }
+
+  const getMyData = () => {
+    instance?.methods.getMyDataTest(address).call({from:fullUserAddress}).then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
+  }
+
   return (
     <div className="App">
       <header className="flex">
@@ -146,6 +156,9 @@ const App = () => {
             <UserSidebar instance={instance} userAddress={fullUserAddress}/>
           </div>
       }
+      <input type="text" name="address" onChange={(val) => setAdress(val.target.value)} value={address}/>
+      <button onClick={() => getData()}>get data</button>
+      <button onClick={() => getMyData()}>get my data</button>
     </div>
   );
 }

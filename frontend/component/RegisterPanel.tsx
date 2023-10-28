@@ -8,28 +8,46 @@ interface propsI {
 
 const RegisterPanel = (props:propsI) => {
     const [nickname,setNickname] = React.useState("");
-    const [error,setError] = React.useState("");
+    const [errorRegister,setErrorRegister] = React.useState("");
+    const [errorLogin,setErrorLogin] = React.useState("");
 
     const register = async () => {
-        // console.log("test",props.instance.methods);
+        setErrorRegister("");
         try {
-            const res = await props.instance.methods.register(nickname).send({from:props.userAddress});
-            if (res == "Vous avez deja un compte") setError("Vous avez déjà un compte");
-            else if (res == "Vous n'etes pas l'Admin") setError("Vous n'êtes pas l'Administrateur");
+            const res = await props.instance.methods.register(nickname).call({from:props.userAddress});
+            if (res == "Vous avez deja un compte") {
+                setErrorRegister("Vous avez déjà un compte");
+                props.setIsRegistered(true);
+            }
+            else if (res == "Vous n'etes pas l'Admin") setErrorRegister("Vous n'êtes pas l'Administrateur");
             else if (res == "compte ajoute") props.setIsRegistered(true);
-            else setError(`erreur inconnu : ${res}`);
+            else {
+                setErrorRegister(`erreur inconnu : ${res}`);
+                console.error("register error",res);
+            }
         } catch (err) {
-            typeof(err) == "string" && setError(err);
+            typeof(err) == "string" && setErrorRegister(err);
+            console.error("register error",err);
         }
-        
-        console.log('res',test)
-        // props.instance.methods.register().send({from:props.userAddress, _nickName:nickname}).then((res) => {
-        //   console.log('test',res)
-        //   props.setIsRegistered(true);
-        // }).catch((err) => {
-        //     console.error("register error",err);
-        //     setError(err);
-        // })
+    }
+
+    const login = async () => {
+        setErrorLogin("");
+        try {
+            const res = await props.instance.methods.login().call({from:props.userAddress});
+
+            // console.log('login',res)
+            if (res[0] == true) {
+                props.setIsRegistered(true);
+            }
+            else {
+                setErrorLogin(`erreur : ${res[1]}`);
+                console.error("Login error",res);
+            }
+        } catch (err) {
+            typeof(err) == "string" && setErrorLogin(err);
+            console.error("Login error",err);
+        }
     }
 
     return (
@@ -42,8 +60,14 @@ const RegisterPanel = (props:propsI) => {
             <div>
                 <button type="submit" style={{marginTop:10, borderWidth:1, borderColor:'black'}} onClick={() => register()}>S'inscrire</button>
             </div>
-            {error != "" &&
-                <p>{error}</p>
+            {errorRegister != "" &&
+                <p style={{color:'red',marginTop:10, marginBottom:5}}>{errorRegister}</p>
+            }
+            <div>
+                <button type="submit" style={{marginTop:5, borderWidth:1, borderColor:'black'}} onClick={() => login()}>J'ai déjà un compte</button>
+            </div>
+            {errorLogin != "" &&
+                <p style={{color:'red',marginTop:10}}>{errorLogin}</p>
             }
         </div>
     )
