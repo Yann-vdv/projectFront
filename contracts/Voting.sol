@@ -8,8 +8,9 @@ contract Voting is Ownable {
 
     constructor() Ownable(msg.sender) {
         register("Admin");
+        workflowStatus = WorkflowStatus.RegisteringVoters;
     }
-
+    
     mapping(address => Voter) public voterInfo;
 
     WorkflowStatus public workflowStatus;
@@ -167,8 +168,25 @@ contract Voting is Ownable {
         return (voterInfo[msg.sender],msg.sender);
     }
     
-    function getEvent() public view onlyOwner returns (WorkflowStatus) {
-        return workflowStatus;
+    function getEvent() public view onlyOwner returns (string memory) {
+        string memory status;
+        if (workflowStatus == WorkflowStatus.RegisteringVoters) {
+            status = "RegisteringVoters";
+        } else if (workflowStatus == WorkflowStatus.ProposalsRegistrationStarted) {
+            status = "ProposalsRegistrationStarted";
+        } else if (workflowStatus == WorkflowStatus.ProposalsRegistrationEnded) {
+            status = "ProposalsRegistrationEnded";
+        } else if (workflowStatus == WorkflowStatus.VotingSessionStarted) {
+            status = "VotingSessionStarted";
+        } else if (workflowStatus == WorkflowStatus.VotingSessionEnded) {
+            status = "VotingSessionEnded";
+        } else if (workflowStatus == WorkflowStatus.VotesTallied) {
+            status = "VotesTallied";
+        }
+        else {
+        status =  "uknonw";
+        }
+        return status;
     }
 
     function getWinner() public view returns (Proposal memory) {

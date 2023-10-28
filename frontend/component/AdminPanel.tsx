@@ -7,34 +7,46 @@ interface propsI {
 }
 
 const AdminPanel =  (props:propsI) => {
-    const [Event, setEvent] = React.useState(" ");
-
+    const [Event, setEvent] = React.useState("initialisation");
+    
     async function getEventPanel() {
-        const test = await props.instance.methods.getEvent().call({ from: props.userAddress });
-        console.log("res getEventPanel", test);
+        try {
+            const status = await props.instance.methods.getEvent().call({ from: props.userAddress });
+            console.log("État actuel du contrat :", status);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de l'état :", error);
+        }
     }
 
     React.useEffect(() => {
         if(props.instance)
         {
             getEventPanel();
-            console.log("Event ", Event);  
         }
-
+        
     }, [props.instance]);
 
-    function startRegisteringProposalsPanel() {
-        const test = props.instance.methods
-        .startRegisteringProposals()
-        .call({ from: props.userAddress })
-        console.log("res startRegisteringProposalsPanel", test);
+    
+
+async function startRegisteringProposalsPanel() {
+    try {
+        const result = await props.instance.methods
+            .startRegisteringProposals()
+            .call({ from: props.userAddress });
+            console.log("Transaction réussie :", result);
+            getEventPanel()
+    } catch (error) {
+        console.error("Erreur lors de la transaction :", error);
     }
+}
+
 
     function stopRegisteringProposalsPanel() {
         const test = props.instance.methods
         .stopRegisteringProposals()
         .call({ from: props.userAddress })
         console.log("res stopRegisteringProposalsPanel", test);
+        console.log("Event ", Event); 
     }
 
 
