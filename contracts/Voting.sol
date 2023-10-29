@@ -149,8 +149,12 @@ contract Voting is Ownable {
         return proposals;
     }
 
-    function getUsers() public view check returns (Voter[] memory) {
-        Voter[] memory votersData;
+    function getUsers() public view check returns (address[] memory) {
+        return voters;
+    }
+
+    function getUsersData() public view check returns (Voter[] memory) {
+        Voter[] memory votersData = new Voter[](voters.length);
         for (uint i = 0; i < voters.length; i++) {
             votersData[i] = voterInfo[voters[i]];
         }
