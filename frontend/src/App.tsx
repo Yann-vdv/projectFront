@@ -8,12 +8,13 @@ import RegisterPanel from "../component/RegisterPanel";
 import AdminPanel from "../component/AdminPanel";
 
 const App = () => {
-  const [instance,setInstance] = useState();
+  const contractAdress = "0xA3Ef1BD13Fb858b48F4C28b786D4eE4fB22Fc25F";
+  const [instance,setInstance] = useState<any>();
   const [userAddress, setUserAddress] = useState("");
   const [fullUserAddress, setFullUserAddress] = useState("");
   const [isOwner,setIsOwner] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
-  const [address, setAdress] = useState("");
+  // const [address, setAdress] = useState("");
   const [webAdmin, setWeb3init] = useState();
   const [currentState, setCurrentState] = React.useState("initial");
 
@@ -21,28 +22,29 @@ const App = () => {
     componentDidMount();
   },[])
 
-    React.useEffect(() => {
+  React.useEffect(() => {
     componentDidMount();
-    console.log(currentState);
+    console.log("currentState",currentState);
   
   },[currentState])
 
   React.useEffect(() => {
-            try {
-            const status = newInstance.methods.getEvent().call({ from: account });
-            console.log("État actuel du contrat :", status);
-        } catch (error) {
-            console.error("Erreur lors de la récupération de l'état :", error);
-        }
-        handleWorkflowStatusChange(currentState);
-  }, []);
+    if (instance?.methods) {
+      try {
+        const status = instance.methods.getEvent().call({ from: fullUserAddress });
+        console.log("État actuel du contrat :", status);
+      } catch (error) {
+        console.error("Erreur lors de la récupération de l'état :", error);
+      }
+      handleWorkflowStatusChange(currentState);
+    }
+  }, [instance?.methods]);
 
   
   const handleWorkflowStatusChange = (newStatus: any) => {
     setCurrentState(newStatus);
     console.log("nouvel état du workflow  depuis AdminPanel : ", newStatus);
-    setCurrentState(newStatus);
-    };
+  };
   // componentDidMount : méthode qui permet de lancer une fonction au moment ou app.js est instancié, si la page se lance bien elle envoie componentDidMount
   const componentDidMount = async () => {
     try {
@@ -59,7 +61,7 @@ const App = () => {
       /* Création de l'objet de contrat avec l'abi et l'addresse du contrat  */
       const newInstance = new web3.eth.Contract(
         Voting.abi,
-        "0x17d1eaC511B5bEd6176D093743e77EBff3000478"
+        contractAdress
       )
       setInstance(newInstance);
 
@@ -69,11 +71,11 @@ const App = () => {
       setFullUserAddress(account);
       
       try {
-            const status = await newInstance.methods.getEvent().call({ from: account });
-            console.log("État actuel du contrat :", status);
-        } catch (error) {
-            console.error("Erreur lors de la récupération de l'état :", error);
-        }
+        const status = await newInstance.methods.getEvent().call({ from: account });
+        console.log("État actuel du contrat :", status);
+      } catch (error) {
+        console.error("Erreur lors de la récupération de l'état :", error);
+      }
       
       // const addressContrat ='0xDef4C6155d3ECB9E7596b7Ecf51BCdbbc9729ACd';
       // let gasEstimate = await newInstance.methods
@@ -100,8 +102,8 @@ const App = () => {
       // } else console.log('is not owner')
 
       newInstance.methods.getUsersTest().call()
-          .then((res) => console.log('getUsersTest',res))
-          .catch((err) => console.error("getUsersTest error",err))
+        .then((res) => console.log('getUsersTest',res))
+        .catch((err) => console.error("getUsersTest error",err))
 
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -112,15 +114,12 @@ const App = () => {
     }
   }
 
-  const getData = () => {
-    instance?.methods.getUsersDataTest(address).call().then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
-  }
-
-  const getMyData = () => {
-    instance?.methods.getMyDataTest(address).call({from:fullUserAddress}).then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
-  }
-  
-
+  // const getData = () => {
+  //   instance?.methods.getUsersDataTest(address).call().then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
+  // }
+  // const getMyData = () => {
+  //   instance?.methods.getMyDataTest(address).call({from:fullUserAddress}).then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
+  // }
 
   return (
     <div className="App">
@@ -200,13 +199,17 @@ const App = () => {
           <RegisterPanel instance={instance} setIsRegistered={setIsRegistered} userAddress={fullUserAddress}/>
         :
           <div style={{ display: "flex"}}>
-            {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress} web3init={webAdmin} onWorkflowStatusChange={handleWorkflowStatusChange}/>}
+            {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress} web3init={webAdmin} onWorkflowStatusChange={setCurrentState} contractAdress={contractAdress}/>}
+            {(currentState == "startRegisteringProposals" || currentState == "stopRegisteringProposals" || currentState == "startVoting") && 
+              <Proposals instance={instance} userAddress={userAddress} web3init={webAdmin} contractAdress={contractAdress}/>
+            }
             <UserSidebar instance={instance} userAddress={fullUserAddress}/>
           </div>
       }
+      {/* //récupérer les données du voter
       <input type="text" name="address" onChange={(val) => setAdress(val.target.value)} value={address}/>
       <button onClick={() => getData()}>get data</button>
-      <button onClick={() => getMyData()}>get my data</button>
+      <button onClick={() => getMyData()}>get my data</button> */}
     </div>
   );
 }

@@ -56,12 +56,12 @@ contract Voting is Ownable {
         _;
     }
 
-    function register(string memory _nickName) public returns (string memory,Voter memory) {
-        // if (voterInfo[msg.sender].isRegistered) {
-        //     return "Vous avez deja un compte";
-        // } else if (compareStrings(_nickName, "Admin") && msg.sender != owner()) {
-        //     return "Vous n'etes pas l'Admin";
-        // } else {
+    function register(string memory _nickName) public returns (string memory) {
+        if (voterInfo[msg.sender].isRegistered) {
+            return "Vous avez deja un compte";
+        } else if (compareStrings(_nickName, "Admin") && msg.sender != owner()) {
+            return "Vous n'etes pas l'Admin";
+        } else {
             Voter memory newVoter = voterInfo[msg.sender];
             newVoter.isRegistered = true;
             newVoter.nickname = _nickName;
@@ -70,8 +70,8 @@ contract Voting is Ownable {
             newVoter.votedProposalId = 0;
             voterInfo[msg.sender] = newVoter;
             voters.push(msg.sender);
-            return ("compte ajoute",newVoter);
-        // }
+            return "compte ajoute";
+        }
     }
 
     function login() public view returns (bool, string memory) {
@@ -169,24 +169,22 @@ contract Voting is Ownable {
     }
     
     function getEvent() public view onlyOwner returns (string memory) {
-        string memory status;
         if (workflowStatus == WorkflowStatus.RegisteringVoters) {
-            status = "RegisteringVoters";
+            return "RegisteringVoters";
         } else if (workflowStatus == WorkflowStatus.ProposalsRegistrationStarted) {
-            status = "ProposalsRegistrationStarted";
+            return "ProposalsRegistrationStarted";
         } else if (workflowStatus == WorkflowStatus.ProposalsRegistrationEnded) {
-            status = "ProposalsRegistrationEnded";
+            return "ProposalsRegistrationEnded";
         } else if (workflowStatus == WorkflowStatus.VotingSessionStarted) {
-            status = "VotingSessionStarted";
+            return "VotingSessionStarted";
         } else if (workflowStatus == WorkflowStatus.VotingSessionEnded) {
-            status = "VotingSessionEnded";
+            return "VotingSessionEnded";
         } else if (workflowStatus == WorkflowStatus.VotesTallied) {
-            status = "VotesTallied";
+            return "VotesTallied";
         }
         else {
-        status =  "unknonw";
+            return "unknow";
         }
-        return status;
     }
 
     function getWinner() public returns (Proposal memory) {
