@@ -8,14 +8,21 @@ interface voterI {
     votedProposalId: 0
 }
 
-const UserSidebar = (instance:any) => {
+interface propsI {
+    instance:any
+    userAddress:string
+}
+
+const UserSidebar = (props:propsI) => {
     const [users,setUsers] = React.useState<voterI[]>();
 
     React.useEffect(() => {
-        instance.methods && instance.methods.getUsers().call()
-            .then((res) => setUsers(res))
-            .catch((err) => console.error("getUsers error",err))
-    },[instance.methods])
+        props?.instance?.methods && props.instance.methods.getUsersData().call({ from:props.userAddress })
+            .then((res:any) => {
+                setUsers(res);
+            })
+            .catch((err:any) => console.error("getUsers error",err))
+    },[props?.instance?.methods])
 
     return (
         <div className="border border-b h-full" style={{width:150}}>
