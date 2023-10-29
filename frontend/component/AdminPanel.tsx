@@ -1,6 +1,6 @@
 import * as React from "react";
 import Web3 from "web3";
-import Proposals from "./Proposals";
+
 
 interface propsI {
     instance:any
@@ -118,6 +118,23 @@ const AdminPanel =  (props:propsI) => {
         sendNewWorkflowStatus("TallingVote");
     }
 
+        async function reloadStatePanel() {
+        let gasEstimate = await props.instance.methods
+            .reloadState()
+            .estimateGas({ from: props.userAddress });
+
+        let encode = await props.instance.methods.reloadState().encodeABI();
+        await props.web3init.eth.sendTransaction({
+            from: props.userAddress,
+            to: props.contractAdress,
+            gas: gasEstimate,
+            data: encode,
+        });
+        getEventPanel();
+        setCurrentState("RegisteringVoters");
+        sendNewWorkflowStatus("RegisteringVoters");
+    }
+
     return (
         <div className="border border-b h-full" style={{ width: 250 }}>
             <div className="border-b">
@@ -129,6 +146,7 @@ const AdminPanel =  (props:propsI) => {
                 <p onClick={() => startVotingPanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "startVoting" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Début du vote</p>
                 <p onClick={() => stopVotingPanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "stopVoting" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Fin des votes</p>
                 <p onClick={() => VoteTalling()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "TallingVote" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Comptage des votes</p>
+                <p onClick={() => reloadStatePanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Redemarrer</p>
             </div>
         </div>
     );
