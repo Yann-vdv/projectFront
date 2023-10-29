@@ -184,14 +184,17 @@ contract Voting is Ownable {
             status = "VotesTallied";
         }
         else {
-        status =  "uknonw";
+        status =  "unknonw";
         }
         return status;
     }
 
-    function getWinner() public view returns (Proposal memory) {
-        require(workflowStatus == WorkflowStatus.VotesTallied, "Le vote n a pas encore ete comptabilise");
-        uint winningProposalId ;
+    function getWinner() public returns (Proposal memory) {
+        require(workflowStatus == WorkflowStatus.VotingSessionEnded, "La session d enregistrement des propositions n a pas demarre");
+        WorkflowStatus previousStatus = workflowStatus;
+        workflowStatus = WorkflowStatus.VotesTallied;
+        emit WorkflowStatusChange(previousStatus, workflowStatus);
+        uint winningProposalId;
         uint maxCount = 0;
         for (uint i = 0; i < proposals.length; i++) {
             if (proposals[i].voteCount > maxCount) {

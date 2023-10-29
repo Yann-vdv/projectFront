@@ -1,13 +1,16 @@
 import * as React from "react";
-
+import Web3 from "web3";
+import Proposals from "./Proposals";
 
 interface propsI {
     instance:any,
     userAddress:string
+    web3init: Web3;
+    onWorkflowStatusChange: (newStatus: string) => void;
 }
 
 const AdminPanel =  (props:propsI) => {
-    const [Event, setEvent] = React.useState("initialisation");
+    const [currentState, setCurrentState] = React.useState("initial");
     
     async function getEventPanel() {
         try {
@@ -18,65 +21,139 @@ const AdminPanel =  (props:propsI) => {
         }
     }
 
+        const sendNewWorkflowStatus = (currentState: string) => {
+        props.onWorkflowStatusChange(currentState);
+    };
+
+    
+
     React.useEffect(() => {
         if(props.instance)
         {
             getEventPanel();
         }
-        
     }, [props.instance]);
 
     
 
-async function startRegisteringProposalsPanel() {
-    try {
-        const result = await props.instance.methods
+    async function startRegisteringProposalsPanel() {
+        const addressContrat = '0x17d1eaC511B5bEd6176D093743e77EBff3000478';
+        let gasEstimate = await props.instance.methods
             .startRegisteringProposals()
-            .call({ from: props.userAddress });
-            console.log("Transaction réussie :", result);
-            getEventPanel()
-    } catch (error) {
-        console.error("Erreur lors de la transaction :", error);
-    }
-}
+            .estimateGas({ from: props.userAddress });
+        console.log(gasEstimate);
 
-
-    function stopRegisteringProposalsPanel() {
-        const test = props.instance.methods
-        .stopRegisteringProposals()
-        .call({ from: props.userAddress })
-        console.log("res stopRegisteringProposalsPanel", test);
-        console.log("Event ", Event); 
-    }
-
-
-    function startVotingPanel() {
-        const test = props.instance.methods
-        .startVoting()
-        .call({ from: props.userAddress })
-        console.log("res startVotingPanel", test);
+        let encode = await props.instance.methods.startRegisteringProposals().encodeABI();
+        let tx = await props.web3init.eth.sendTransaction({
+            from: props.userAddress,
+            to: addressContrat,
+            gas: gasEstimate,
+            data: encode,
+        });
+        setCurrentState("startRegisteringProposals")
+        getEventPanel();
+        sendNewWorkflowStatus(currentState);
+        console.log("instance", tx);
     }
 
-    function stopVotingPanel() {
-        const test = props.instance.methods
-        .stopVoting()
-        .call({ from: props.userAddress })
-        console.log("res stopVotingPanel", test);
+    async function stopRegisteringProposalsPanel() {
+        const addressContrat = '0x17d1eaC511B5bEd6176D093743e77EBff3000478';
+        let gasEstimate = await props.instance.methods
+            .stopRegisteringProposals()
+            .estimateGas({ from: props.userAddress });
+        console.log(gasEstimate);
+
+        let encode = await props.instance.methods.stopRegisteringProposals().encodeABI();
+        let tx = await props.web3init.eth.sendTransaction({
+            from: props.userAddress,
+            to: addressContrat,
+            gas: gasEstimate,
+            data: encode,
+        });
+        getEventPanel();
+        setCurrentState("stopRegisteringProposals");
+        sendNewWorkflowStatus(currentState);
+        console.log("instance", tx);
+    }
+
+    async function startVotingPanel() {
+        const addressContrat = '0x17d1eaC511B5bEd6176D093743e77EBff3000478';
+        let gasEstimate = await props.instance.methods
+            .startVoting()
+            .estimateGas({ from: props.userAddress });
+        console.log(gasEstimate);
+
+        let encode = await props.instance.methods.startVoting().encodeABI();
+        let tx = await props.web3init.eth.sendTransaction({
+            from: props.userAddress,
+            to: addressContrat,
+            gas: gasEstimate,
+            data: encode,
+        });
+        getEventPanel();
+        setCurrentState("startVoting");
+        sendNewWorkflowStatus(currentState);
+        console.log("instance", tx);
+    }
+
+    async function stopVotingPanel() {
+        const addressContrat = '0x17d1eaC511B5bEd6176D093743e77EBff3000478';
+        let gasEstimate = await props.instance.methods
+            .stopVoting()
+            .estimateGas({ from: props.userAddress });
+        console.log(gasEstimate);
+
+        let encode = await props.instance.methods.stopVoting().encodeABI();
+        let tx = await props.web3init.eth.sendTransaction({
+            from: props.userAddress,
+            to: addressContrat,
+            gas: gasEstimate,
+            data: encode,
+        });
+        getEventPanel();
+        setCurrentState("stopVoting");
+        sendNewWorkflowStatus(currentState);
+        console.log("instance", tx);
+    }
+
+    async function VoteTalling() {
+        const addressContrat = '0x17d1eaC511B5bEd6176D093743e77EBff3000478';
+        let gasEstimate = await props.instance.methods
+            .getWinner()
+            .estimateGas({ from: props.userAddress });
+        console.log(gasEstimate);
+
+        let encode = await props.instance.methods.getWinner().encodeABI();
+        let tx = await props.web3init.eth.sendTransaction({
+            from: props.userAddress,
+            to: addressContrat,
+            gas: gasEstimate,
+            data: encode,
+        });
+        getEventPanel();
+        setCurrentState("TallingVote");
+        sendNewWorkflowStatus(currentState);
+        console.log("instance", tx);
     }
 
     return (
-    <div className="border border-b h-full" style={{ width: 150 }}>
-        <div className="border-b">
-        <h3>Panel Administrateur</h3>
+    <><div className="border border-b h-full" style={{ width: 250 }}>
+            <div className="border-b">
+                <h3>Panel Admin</h3>
+            </div>
+            <div className="border-b">
+                <p onClick={() => startRegisteringProposalsPanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "startRegisteringProposals" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Début des propositions</p>
+                <p onClick={() => stopRegisteringProposalsPanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "stopRegisteringProposals" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Fin des propositions</p>
+                <p onClick={() => startVotingPanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "startVoting" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Début du vote</p>
+                <p onClick={() => stopVotingPanel()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "stopVoting" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Fin des votes</p>
+                <p onClick={() => VoteTalling()} style={{ cursor: "pointer", padding: "5px", margin: "5px", backgroundColor: currentState === "TallingVote" ? "#FFA500" : "#4CAF50", color: "white", border: "1px solid black", borderRadius: "5px" }}>Comptage des votes</p>
+            </div>
         </div>
-        <div className="border-b">
-            <p onClick={() => startRegisteringProposalsPanel()}>Début des propositions</p>
-            <p onClick={() => stopRegisteringProposalsPanel()}>Fin des propositions</p>
-            <p onClick={() => startVotingPanel()}>Début du vote</p>
-            <p onClick={() => stopVotingPanel()}>Fin des votes</p>
-            {/* <p onClick={() => startRegisteringProposalsPanel()}>Comptage des votes</p> */}
+        <div>
+            {(currentState == "startRegisteringProposals") && <Proposals instance={props.instance} userAddress={props.userAddress} />}
         </div>
-    </div>
+    </>
+    
     );
 };
 export default AdminPanel;

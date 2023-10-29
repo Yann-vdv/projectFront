@@ -4,26 +4,51 @@ import getWeb3 from "./getWeb3";
 import "./App.css";
 import UserSidebar from "../component/UserSidebar";
 import Proposals from "../component/Proposals";
-import AdminPanel from "../component/AdminPanel";
 import RegisterPanel from "../component/RegisterPanel";
+import AdminPanel from "../component/AdminPanel";
 
 const App = () => {
   const [instance,setInstance] = useState();
   const [userAddress, setUserAddress] = useState("");
   const [fullUserAddress, setFullUserAddress] = useState("");
-  const [isOwner,setIsOwner] = useState(false);
+  const [isOwner,setIsOwner] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [address, setAdress] = useState("");
+  const [webAdmin, setWeb3init] = useState();
+  const [currentState, setCurrentState] = React.useState("initial");
 
   React.useEffect(() => {
     componentDidMount();
   },[])
 
+    React.useEffect(() => {
+    componentDidMount();
+    console.log(currentState);
+  
+  },[currentState])
+
+  React.useEffect(() => {
+            try {
+            const status = newInstance.methods.getEvent().call({ from: account });
+            console.log("État actuel du contrat :", status);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de l'état :", error);
+        }
+        handleWorkflowStatusChange(currentState);
+  }, []);
+
+  
+  const handleWorkflowStatusChange = (newStatus: any) => {
+    setCurrentState(newStatus);
+    console.log("nouvel état du workflow  depuis AdminPanel : ", newStatus);
+    setCurrentState(newStatus);
+    };
   // componentDidMount : méthode qui permet de lancer une fonction au moment ou app.js est instancié, si la page se lance bien elle envoie componentDidMount
   const componentDidMount = async () => {
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3()
+      setWeb3init(web3);
 
       // Use web3 to get the user's accounts.
       /* on récupère le tableau des comptes sur le metamask du user */
@@ -34,7 +59,7 @@ const App = () => {
       /* Création de l'objet de contrat avec l'abi et l'addresse du contrat  */
       const newInstance = new web3.eth.Contract(
         Voting.abi,
-        "0xa9975904B687C43ef22cB3216C6e70ab71674F69"
+        "0x17d1eaC511B5bEd6176D093743e77EBff3000478"
       )
       setInstance(newInstance);
 
@@ -42,6 +67,28 @@ const App = () => {
 
       setUserAddress(account.slice(0, 6) + "..." + account.slice(38, 42));
       setFullUserAddress(account);
+      
+      try {
+            const status = await newInstance.methods.getEvent().call({ from: account });
+            console.log("État actuel du contrat :", status);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de l'état :", error);
+        }
+      
+      // const addressContrat ='0xDef4C6155d3ECB9E7596b7Ecf51BCdbbc9729ACd';
+      // let gasEstimate = await newInstance.methods
+      // .startRegisteringProposals()
+      // .estimateGas({ from: accounts[0] });
+      // console.log(gasEstimate);
+
+      // let encode = await newInstance.methods.startRegisteringProposals().encodeABI();
+      // let tx = await web3.eth.sendTransaction({
+      //   from: accounts[0],
+      //   to: addressContrat,
+      //   gas: gasEstimate,
+      //   data: encode,
+      // });
+      // console.log("instance", tx);
 
 			// Check if the user is the owner
       // const owner = await newInstance.methods.owner().call()
@@ -72,6 +119,8 @@ const App = () => {
   const getMyData = () => {
     instance?.methods.getMyDataTest(address).call({from:fullUserAddress}).then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
   }
+  
+
 
   return (
     <div className="App">
@@ -151,8 +200,7 @@ const App = () => {
           <RegisterPanel instance={instance} setIsRegistered={setIsRegistered} userAddress={fullUserAddress}/>
         :
           <div style={{ display: "flex"}}>
-            {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress}/>}
-            <Proposals instance={instance} userAddress={fullUserAddress}/>
+            {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress} web3init={webAdmin} onWorkflowStatusChange={handleWorkflowStatusChange}/>}
             <UserSidebar instance={instance} userAddress={fullUserAddress}/>
           </div>
       }
