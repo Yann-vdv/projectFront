@@ -156,17 +156,6 @@ contract Voting is Ownable {
         }
         return votersData;
     }
-
-    function getUsersTest() public view returns (address[] memory) {
-        return voters;
-    }
-
-    function getUsersDataTest(address _address) public view returns (Voter memory) {
-        return voterInfo[_address];
-    }
-    function getMyDataTest() public view returns (Voter memory, address) {
-        return (voterInfo[msg.sender],msg.sender);
-    }
     
     function getEvent() public view onlyOwner returns (string memory) {
         if (workflowStatus == WorkflowStatus.RegisteringVoters) {
@@ -201,5 +190,21 @@ contract Voting is Ownable {
             }
         }
         return proposals[winningProposalId];
+    }
+
+
+
+    event TestEvent(bool status, address indexed player);
+    function triggerTestEvent() public {
+        emit TestEvent(true, msg.sender);
+    }
+    function getUsersTest() public view returns (address[] memory) {
+        return voters;
+    }
+    function getUsersDataTest(address _address) public view returns (Voter memory) {
+        return voterInfo[_address];
+    }
+    function getMyDataTest() public view returns (Voter memory, address) {
+        return (voterInfo[msg.sender],msg.sender);
     }
 }

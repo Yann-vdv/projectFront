@@ -4,6 +4,8 @@ interface propsI {
     instance:any,
     setIsRegistered:(arg0: boolean)=>void,
     userAddress:string
+    web3init:any
+    contractAdress:string
 }
 
 const RegisterPanel = (props:propsI) => {
@@ -14,17 +16,35 @@ const RegisterPanel = (props:propsI) => {
     const register = async () => {
         setErrorRegister("");
         try {
-            const res = await props.instance.methods.register(nickname).call({from:props.userAddress});
-            if (res == "Vous avez deja un compte") {
+            let gasEstimate = await props.instance.methods
+                .register(nickname)
+                .estimateGas({ from: "0x93fee67B7556B9a375AaC5f5de73Af181558B85B" });
+            let encode = await props.instance.methods.register(nickname).encodeABI();
+            let tx = await props.web3init.eth.sendTransaction({
+                from: "0x93fee67B7556B9a375AaC5f5de73Af181558B85B",
+                to: props.contractAdress,
+                gas: gasEstimate,
+                data: encode,
+            });
+            if (tx.status == 1) {
                 setErrorRegister("Vous avez déjà un compte");
                 props.setIsRegistered(true);
+            } else {
+                setErrorRegister('erreur inconnu');
+                console.error("register error",tx);
             }
-            else if (res == "Vous n'etes pas l'Admin") setErrorRegister("Vous n'êtes pas l'Administrateur");
-            else if (res == "compte ajoute") props.setIsRegistered(true);
-            else {
-                setErrorRegister(`erreur inconnu : ${res}`);
-                console.error("register error",res);
-            }
+
+            // const res = await props.instance.methods.register(nickname).send({from:props.userAddress});
+            // if (res == "Vous avez deja un compte") {
+            //     setErrorRegister("Vous avez déjà un compte");
+            //     props.setIsRegistered(true);
+            // }
+            // else if (res == "Vous n'etes pas l'Admin") setErrorRegister("Vous n'êtes pas l'Administrateur");
+            // else if (res == "compte ajoute") props.setIsRegistered(true);
+            // else {
+            //     setErrorRegister(`erreur inconnu : ${res}`);
+            //     console.error("register error",res);
+            // }
         } catch (err) {
             typeof(err) == "string" && setErrorRegister(err);
             console.error("register error",err);

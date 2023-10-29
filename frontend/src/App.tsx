@@ -8,13 +8,13 @@ import RegisterPanel from "../component/RegisterPanel";
 import AdminPanel from "../component/AdminPanel";
 
 const App = () => {
-  const contractAdress = "0xA3Ef1BD13Fb858b48F4C28b786D4eE4fB22Fc25F";
+  const contractAdress = "0x97f6225Ced873DB290E90C81b2C9140Ac9D3bce9";
   const [instance,setInstance] = useState<any>();
   const [userAddress, setUserAddress] = useState("");
   const [fullUserAddress, setFullUserAddress] = useState("");
   const [isOwner,setIsOwner] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
-  // const [address, setAdress] = useState("");
+  const [address, setAdress] = useState("");
   const [webAdmin, setWeb3init] = useState();
   const [currentState, setCurrentState] = React.useState("initial");
 
@@ -25,7 +25,6 @@ const App = () => {
   React.useEffect(() => {
     componentDidMount();
     console.log("currentState",currentState);
-  
   },[currentState])
 
   React.useEffect(() => {
@@ -63,6 +62,11 @@ const App = () => {
         Voting.abi,
         contractAdress
       )
+
+      newInstance.on('TestEvent', function (event: any) {
+        console.log(`Result is ${event}`);
+      });
+      
       setInstance(newInstance);
 
       const account = accounts[0];
@@ -101,9 +105,9 @@ const App = () => {
       //   // })
       // } else console.log('is not owner')
 
-      newInstance.methods.getUsersTest().call()
-        .then((res) => console.log('getUsersTest',res))
-        .catch((err) => console.error("getUsersTest error",err))
+      // newInstance.methods.getUsersTest().call()
+      //   .then((res: any) => console.log('getUsersTest',res))
+      //   .catch((err: any) => console.error("getUsersTest error",err))
 
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -119,6 +123,26 @@ const App = () => {
   // }
   // const getMyData = () => {
   //   instance?.methods.getMyDataTest(address).call({from:fullUserAddress}).then((res) => console.log('userData',res)).catch((err) => console.error('userData error',err))
+  // }
+  // const triggerTestEvent = async () => {
+  //   try {
+  //     const gasEstimate = await instance.methods
+  //       .triggerTestEvent()
+  //       .estimateGas({ from: userAddress });
+
+  //     const encode = await instance.methods.triggerTestEvent().encodeABI();
+  //     console.log('test event encode',encode)
+  //     //@ts-ignore
+  //     let tx = await webAdmin.eth.sendTransaction({
+  //       from: userAddress,
+  //       to: contractAdress,
+  //       gas: gasEstimate,
+  //       data: encode
+  //     });
+  //     console.log('test event tx',tx)
+  //   } catch (err) {
+  //     console.error('test err',err)
+  //   }
   // }
 
   return (
@@ -196,7 +220,7 @@ const App = () => {
       </header>
       {instance && 
         !isRegistered ?
-          <RegisterPanel instance={instance} setIsRegistered={setIsRegistered} userAddress={fullUserAddress}/>
+          <RegisterPanel instance={instance} setIsRegistered={setIsRegistered} userAddress={fullUserAddress} web3init={webAdmin} contractAdress={contractAdress}/>
         :
           <div style={{ display: "flex"}}>
             {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress} web3init={webAdmin} onWorkflowStatusChange={setCurrentState} contractAdress={contractAdress}/>}
@@ -206,10 +230,12 @@ const App = () => {
             <UserSidebar instance={instance} userAddress={fullUserAddress}/>
           </div>
       }
-      {/* //récupérer les données du voter
-      <input type="text" name="address" onChange={(val) => setAdress(val.target.value)} value={address}/>
+      {/* récupérer les données du voter */}
+      {/* <input type="text" name="address" onChange={(val) => setAdress(val.target.value)} value={address}/>
       <button onClick={() => getData()}>get data</button>
       <button onClick={() => getMyData()}>get my data</button> */}
+      {/* test events */}
+      {/* <button onClick={() => triggerTestEvent()}>triggerTestEvent</button> */}
     </div>
   );
 }
