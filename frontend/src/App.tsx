@@ -8,7 +8,7 @@ import RegisterPanel from "../component/RegisterPanel";
 import AdminPanel from "../component/AdminPanel";
 
 const App = () => {
-  const contractAdress = "0x97f6225Ced873DB290E90C81b2C9140Ac9D3bce9";
+  const contractAdress = "0x422eF29a9CC8db77e298fbeB75F64eF2AaD8aAD1";
   const [instance,setInstance] = useState<any>();
   const [userAddress, setUserAddress] = useState("");
   const [fullUserAddress, setFullUserAddress] = useState("");
@@ -81,20 +81,6 @@ const App = () => {
         console.error("Erreur lors de la récupération de l'état :", error);
       }
       
-      // const addressContrat ='0xDef4C6155d3ECB9E7596b7Ecf51BCdbbc9729ACd';
-      // let gasEstimate = await newInstance.methods
-      // .startRegisteringProposals()
-      // .estimateGas({ from: accounts[0] });
-      // console.log(gasEstimate);
-
-      // let encode = await newInstance.methods.startRegisteringProposals().encodeABI();
-      // let tx = await web3.eth.sendTransaction({
-      //   from: accounts[0],
-      //   to: addressContrat,
-      //   gas: gasEstimate,
-      //   data: encode,
-      // });
-      // console.log("instance", tx);
 
 			// Check if the user is the owner
       // const owner = await newInstance.methods.owner().call()
@@ -224,9 +210,9 @@ const App = () => {
         :
           <div style={{ display: "flex"}}>
             {isOwner && <AdminPanel instance={instance} userAddress={fullUserAddress} web3init={webAdmin} onWorkflowStatusChange={setCurrentState} contractAdress={contractAdress}/>}
-            {(currentState == "startRegisteringProposals" || currentState == "stopRegisteringProposals" || currentState == "startVoting") && 
-              <Proposals instance={instance} userAddress={userAddress} web3init={webAdmin} contractAdress={contractAdress}/>
-            }
+            {/* {(currentState == "startRegisteringProposals" || currentState == "stopRegisteringProposals" || currentState == "startVoting") &&  */}
+              <Proposals instance={instance} userAddress={fullUserAddress} web3init={webAdmin} contractAdress={contractAdress} currentState={currentState}/>
+            {/* } */}
             <UserSidebar instance={instance} userAddress={fullUserAddress}/>
           </div>
       }
